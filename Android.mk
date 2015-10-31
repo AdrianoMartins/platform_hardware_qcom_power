@@ -13,6 +13,10 @@ ifneq ($(TARGET_BOARD_AUTO),true)
     LOCAL_SRC_FILES := \
                        power.c \
 
+	ifneq ($(TARGET_TAP_TO_WAKE_NODE),)
+	LOCAL_CFLAGS += -DWAKE_GESTURE_PATH=\"$(TARGET_TAP_TO_WAKE_NODE)\"
+	endif
+
     LOCAL_MODULE:= power.$(TARGET_BOARD_PLATFORM)
     LOCAL_MODULE_TAGS := optional
     include $(BUILD_SHARED_LIBRARY)
