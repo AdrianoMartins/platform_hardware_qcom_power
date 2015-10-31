@@ -60,6 +60,27 @@ static void power_init(struct power_module *module)
     socket_init();
 }
 
+static void sysfs_write(const char *path, char *s)
+{
+    char buf[80];
+    int len;
+    int fd = open(path, O_WRONLY);
+
+    if (fd < 0) {
+        strerror_r(errno, buf, sizeof(buf));
+        ALOGE("Error opening %s: %s\n", path, buf);
+        return;
+    }
+
+    len = write(fd, s, strlen(s));
+    if (len < 0) {
+        strerror_r(errno, buf, sizeof(buf));
+        ALOGE("Error writing to %s: %s\n", path, buf);
+    }
+
+    close(fd);
+}
+
 static void sync_thread(int off)
 {
     int rc;
@@ -203,6 +224,20 @@ static void power_hint(struct power_module *module, power_hint_t hint,
     }
 }
 
+static void set_feature(struct power_module *module, feature_t feature, int state)
+{
+#ifdef WAKE_GESTURE_PATH
+    switch (feature) {
+    case POWER_FEATURE_DOUBLE_TAP_TO_WAKE:
+        sysfs_write(WAKE_GESTURE_PATH, state ? "1" : "0");
+        break;
+    default:
+        ALOGW("Error setting the feature, it doesn't exist %d\n", feature);
+        break;
+    }
+#endif
+}
+
 static struct hw_module_methods_t power_module_methods = {
     .open = NULL,
 };
@@ -210,7 +245,7 @@ static struct hw_module_methods_t power_module_methods = {
 struct power_module HAL_MODULE_INFO_SYM = {
     .common = {
         .tag = HARDWARE_MODULE_TAG,
-        .module_api_version = POWER_MODULE_API_VERSION_0_2,
+        .module_api_version = POWER_MODULE_API_VERSION_0_3,
         .hal_api_version = HARDWARE_HAL_API_VERSION,
         .id = POWER_HARDWARE_MODULE_ID,
         .name = "Qualcomm Power HAL",
@@ -221,4 +256,5 @@ struct power_module HAL_MODULE_INFO_SYM = {
     .init = power_init,
     .setInteractive = power_set_interactive,
     .powerHint = power_hint,
+    .setFeature = set_feature
 };
