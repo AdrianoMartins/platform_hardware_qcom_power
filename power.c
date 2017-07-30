@@ -195,6 +195,14 @@ static void power_set_interactive(struct power_module *module, int on)
 static void power_hint(struct power_module *module, power_hint_t hint,
                        void *data) {
     switch (hint) {
+        case POWER_HINT_LAUNCH:
+            ALOGV("POWER_HINT_LAUNCH");
+            touch_boost();
+            break;
+        case POWER_HINT_CPU_BOOST:
+            ALOGV("POWER_HINT_CPU_BOOST");
+            touch_boost();
+            break;
         case POWER_HINT_INTERACTION:
             ALOGV("POWER_HINT_INTERACTION");
             touch_boost();
